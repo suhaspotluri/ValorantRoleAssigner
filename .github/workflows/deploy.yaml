@@ -1,0 +1,25 @@
+name: Deploy
+run-name: "Deploy: ${{ inputs.environment }}-(${{ github.ref_name }})"
+on:
+  workflow_dispatch:
+      environment:
+        description: Which env to deploy to?
+        type: environment
+      
+concurrency: ${{ github.ref }}-${{ inputs.environment }}
+jobs:
+  Deploy:
+    if: startsWith(github.ref, 'refs/tags/')
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: "Deploying:"
+        run: echo "Deploying suhasthebest/valorant-roles-assigner:${{github.ref_name}} to ${{ inputs.environment }}"
+      - name: Write ssh.key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ssh.key
+          sudo chmod 600 ssh.key
+        shell: bash
+      - name: Deploy
+        run: |
+          ssh -t -i ssh.key -oStrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST_IP }} "sudo docker run -d --restart on-failure --env DISCORD_TOKEN=${{ secrets.BOT_TOKEN }} --name ${{ inputs.environment }}-new suhasthebest/valorant-role-assigner:${{ github.ref_name }} && sudo docker remove ${{ inputs.environment }} --force && sudo docker rename ${{ inputs.environment }}-new ${{ inputs.environment }}"
