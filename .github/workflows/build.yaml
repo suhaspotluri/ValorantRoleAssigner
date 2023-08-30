@@ -1,0 +1,62 @@
+name: Build
+run-name: "Build: ${{ github.ref_name }}"
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "app/**"
+      - "charts/**"
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Build and deploy?
+        required: false
+        type: choice
+        options: 
+          - yes
+          - no
+concurrency: ${{ github.ref }}-${{ inputs.deploy }}
+jobs:
+  Build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
+          logout: true
+
+      - name: Git Version
+        id: version
+        uses: codacy/git-version@2.7.1
+        with:
+          release-branch: main
+          
+      - name: Build Image
+        working-directory: ./app
+        run: docker build . -t suhasthebest/valorant-role-assigner:${{ steps.version.outputs.version }}
+
+      - name: Push Image
+        run: docker push suhasthebest/valorant-role-assigner:${{ steps.version.outputs.version }}
+
+      - name: Git tag
+        run: |
+          git tag ${{ steps.version.outputs.version }} || true
+          git push origin ${{ steps.version.outputs.version }} || true
+        shell: bash
+
+  Deploy:
+    if: inputs.deploy
+    needs:
+      - Build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Sync ArgoCD App
+        run: echo "implement"
