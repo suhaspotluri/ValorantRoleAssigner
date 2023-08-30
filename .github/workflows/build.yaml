@@ -14,8 +14,8 @@ on:
         required: false
         type: choice
         options: 
-          - yes
           - no
+          - yes
 concurrency: ${{ github.ref }}-${{ inputs.deploy }}
 jobs:
   Build:
@@ -38,7 +38,7 @@ jobs:
         uses: codacy/git-version@2.7.1
         with:
           release-branch: main
-          
+
       - name: Build Image
         working-directory: ./app
         run: docker build . -t suhasthebest/valorant-role-assigner:${{ steps.version.outputs.version }}
