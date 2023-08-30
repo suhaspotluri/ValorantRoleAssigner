@@ -24,6 +24,8 @@ concurrency: ${{ github.ref }}-${{ inputs.deploy }}
 jobs:
   Build:
     runs-on: ubuntu-22.04
+    outputs:
+      tag: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -59,9 +61,18 @@ jobs:
 
   Deploy:
     if: "${{ github.event.inputs.deploy == 'true' }}"
+    environment: inputs.environment
     needs:
       - Build
     runs-on: ubuntu-22.04
     steps:
-      - name: Sync ArgoCD App
+      - name: "Env:"
         run: echo "${{ inputs.environment }}"
+      - name: Write ssh.key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ssh.key
+          sudo chmod 600 ssh.key
+        shell: bash
+      - name: Deploy
+        run: |
+          ssh -t -i ssh.key -oStrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST_IP }} "sudo docker run -d --restart on-failure --env DISCORD_TOKEN=${{ secrets.BOT_TOKEN }} --name ${{ inputs.environment }}-new suhasthebest/valorant-role-assigner:${{ needs.Build.tag }} && sudo docker remove ${{ inputs.environment }} --force && sudo docker rename ${{ inputs.environment }}-new ${{ inputs.environment }}"
