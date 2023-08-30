@@ -16,6 +16,10 @@ on:
         options: 
           - no
           - yes
+      environment:
+        description: Which env to deploy to?
+        type: environment
+      
 concurrency: ${{ github.ref }}-${{ inputs.deploy }}
 jobs:
   Build:
@@ -38,6 +42,7 @@ jobs:
         uses: codacy/git-version@2.7.1
         with:
           release-branch: main
+          log-paths: app/
 
       - name: Build Image
         working-directory: ./app
@@ -53,10 +58,10 @@ jobs:
         shell: bash
 
   Deploy:
-    if: "${{ github.event.inputs.deploy == 'true' || github.ref == 'main' }}"
+    if: "${{ github.event.inputs.deploy == 'true' }}"
     needs:
       - Build
     runs-on: ubuntu-22.04
     steps:
       - name: Sync ArgoCD App
-        run: echo "implement"
+        run: echo "${{ inputs.environment }}"
