@@ -53,7 +53,7 @@ jobs:
         shell: bash
 
   Deploy:
-    if: inputs.deploy
+    if: "${{ github.event.inputs.deploy == 'yes' || github.ref == 'main' }}"
     needs:
       - Build
     runs-on: ubuntu-22.04
