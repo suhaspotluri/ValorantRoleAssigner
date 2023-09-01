@@ -23,4 +23,4 @@ jobs:
         shell: bash
       - name: Deploy
         run: |
-          ssh -t -i ssh.key -oStrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST_IP }} "sudo docker run -d --restart on-failure --env DISCORD_TOKEN=${{ secrets.BOT_TOKEN }} --name ${{ inputs.environment }}-new suhasthebest/valorant-role-assigner:${{ github.ref_name }} && sudo docker remove ${{ inputs.environment }} --force && sudo docker rename ${{ inputs.environment }}-new ${{ inputs.environment }}"
+          ssh -t -i ssh.key -oStrictHostKeyChecking=no ubuntu@${{ secrets.SSH_HOST_IP }} "sudo docker run -d --restart on-failure --env DISCORD_TOKEN=${{ secrets.BOT_TOKEN }} --env ENV=${{ inputs.environment }} --name ${{ inputs.environment }}-new suhasthebest/valorant-role-assigner:${{ github.ref_name }} && sudo docker remove ${{ inputs.environment }} --force && sudo docker rename ${{ inputs.environment }}-new ${{ inputs.environment }}"
