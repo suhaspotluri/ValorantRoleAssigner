@@ -33,7 +33,7 @@ client = discord.Client(intents=intents)
 
 AGENTS = []
 
-MEMBERS_NEEDED = 2
+MEMBERS_NEEDED = 5
 
 
 @client.event
